@@ -19,17 +19,8 @@ body{
   background:#0e1a0e;
   position:relative;overflow:hidden;
 }
-.bg{
-  position:fixed;inset:0;
-  background:url('img/Lumra.webp') center center/cover no-repeat;
-  opacity:0.55;
-  z-index:0;
-}
-.bg-scrim{
-  position:fixed;inset:0;
-  background:linear-gradient(to bottom, rgba(8,14,8,0.2) 0%, rgba(8,14,8,0.65) 70%);
-  z-index:0;
-}
+.bg{position:fixed;inset:0;background:url('img/Lumra.webp') center center/cover no-repeat;opacity:0.55;z-index:0;}
+.bg-scrim{position:fixed;inset:0;background:linear-gradient(to bottom,rgba(8,14,8,0.2) 0%,rgba(8,14,8,0.65) 70%);z-index:0;}
 .wrapper{position:relative;z-index:1;width:100%;max-width:400px;display:flex;flex-direction:column;gap:1rem;}
 
 .counter-card{
@@ -38,16 +29,9 @@ body{
   border-radius:16px;
   overflow:hidden;
   backdrop-filter:blur(6px);
-}
-.counter-label{
-  font-size:0.6rem;letter-spacing:0.2em;
-  color:#c4902a;text-align:center;
-  padding:14px 0 0;
-}
-.counter-inner{
   position:relative;
-  display:flex;align-items:center;justify-content:center;
-  min-height:110px;
+  min-height:130px;
+  display:flex;align-items:flex-end;justify-content:center;
 }
 .tap-zone{
   position:absolute;top:0;bottom:0;width:50%;
@@ -58,15 +42,18 @@ body{
 .tap-zone.right{right:0;}
 .tap-zone.left.active{background:rgba(200,60,50,0.2);}
 .tap-zone.right.active{background:rgba(90,158,90,0.2);}
-.counter-mid{position:relative;z-index:1;pointer-events:none;text-align:center;padding-bottom:16px;}
+
+.card-content{
+  position:relative;z-index:1;pointer-events:none;
+  text-align:center;padding:12px 0 18px;width:100%;
+}
+.counter-label{
+  font-size:0.6rem;letter-spacing:0.2em;
+  color:#c4902a;margin-bottom:8px;
+}
 .counter-number{
   font-size:3.8rem;font-weight:700;
   color:#f0e8d0;line-height:1;
-}
-.counter-sub{
-  font-size:0.62rem;letter-spacing:0.12em;
-  color:rgba(200,184,152,0.55);
-  margin-top:6px;
 }
 .counter-edge-hints{
   position:absolute;inset:0;z-index:1;pointer-events:none;
@@ -83,7 +70,6 @@ body{
   font-family:'Cinzel',serif;font-size:0.65rem;letter-spacing:0.15em;
   cursor:pointer;transition:background 0.15s,color 0.15s;
 }
-.reset-btn:hover{background:rgba(160,40,40,0.15);color:#e09090;}
 .reset-btn:active{background:rgba(160,40,40,0.25);}
 </style>
 </head>
@@ -94,33 +80,28 @@ body{
 <div class="wrapper">
 
   <div class="counter-card">
-    <div class="counter-label">LUMRA COSTS</div>
-    <div class="counter-inner">
-      <div class="tap-zone left" id="cast-minus"></div>
-      <div class="tap-zone right" id="cast-plus"></div>
-      <div class="counter-edge-hints">
-        <span class="edge-hint">−</span>
-        <span class="edge-hint">+</span>
-      </div>
-      <div class="counter-mid">
-        <div class="counter-number" id="cost-val">6</div>
-        <div class="counter-sub" id="cost-sub">BASE COST</div>
-      </div>
+    <div class="tap-zone left" id="cast-minus"></div>
+    <div class="tap-zone right" id="cast-plus"></div>
+    <div class="counter-edge-hints">
+      <span class="edge-hint">−</span>
+      <span class="edge-hint">+</span>
+    </div>
+    <div class="card-content">
+      <div class="counter-label">LUMRA COSTS</div>
+      <div class="counter-number" id="cost-val">6</div>
     </div>
   </div>
 
   <div class="counter-card">
-    <div class="counter-label">LUMRA SIZE</div>
-    <div class="counter-inner">
-      <div class="tap-zone left" id="land-minus"></div>
-      <div class="tap-zone right" id="land-plus"></div>
-      <div class="counter-edge-hints">
-        <span class="edge-hint">−</span>
-        <span class="edge-hint">+</span>
-      </div>
-      <div class="counter-mid">
-        <div class="counter-number" id="pt-val">0/0</div>
-      </div>
+    <div class="tap-zone left" id="land-minus"></div>
+    <div class="tap-zone right" id="land-plus"></div>
+    <div class="counter-edge-hints">
+      <span class="edge-hint">−</span>
+      <span class="edge-hint">+</span>
+    </div>
+    <div class="card-content">
+      <div class="counter-label">LUMRA SIZE</div>
+      <div class="counter-number" id="pt-val">0/0</div>
     </div>
   </div>
 
@@ -132,27 +113,36 @@ body{
 var casts = 0, lands = 0;
 
 function render(){
-  var cost = 6 + casts * 2;
-  document.getElementById('cost-val').textContent = cost;
-  document.getElementById('cost-sub').textContent = casts === 0 ? 'BASE COST' : 'COMMANDER TAX +' + (casts*2);
+  document.getElementById('cost-val').textContent = 6 + casts * 2;
   document.getElementById('pt-val').textContent = lands + '/' + lands;
 }
 
-function zone(id, fn){
+var HOLD_DELAY = 400, HOLD_INTERVAL = 100;
+
+function makeZone(id, fn){
   var el = document.getElementById(id);
-  el.addEventListener('pointerdown', function(e){
-    e.preventDefault(); el.classList.add('active'); fn();
-  });
-  function end(){ el.classList.remove('active'); }
-  el.addEventListener('pointerup', end);
-  el.addEventListener('pointerleave', end);
-  el.addEventListener('pointercancel', end);
+  var timer = null, interval = null;
+  function start(e){
+    e.preventDefault();
+    el.classList.add('active');
+    fn();
+    timer = setTimeout(function(){ interval = setInterval(fn, HOLD_INTERVAL); }, HOLD_DELAY);
+  }
+  function stop(){
+    el.classList.remove('active');
+    clearTimeout(timer); clearInterval(interval);
+    timer = null; interval = null;
+  }
+  el.addEventListener('pointerdown', start);
+  el.addEventListener('pointerup', stop);
+  el.addEventListener('pointerleave', stop);
+  el.addEventListener('pointercancel', stop);
 }
 
-zone('cast-minus', function(){ if(casts>0){casts--;render();} });
-zone('cast-plus',  function(){ casts++;render(); });
-zone('land-minus', function(){ if(lands>0){lands--;render();} });
-zone('land-plus',  function(){ lands++;render(); });
+makeZone('cast-minus', function(){ if(casts>0){casts--;render();} });
+makeZone('cast-plus',  function(){ casts++;render(); });
+makeZone('land-minus', function(){ if(lands>0){lands--;render();} });
+makeZone('land-plus',  function(){ lands++;render(); });
 document.getElementById('reset-btn').addEventListener('click', function(){ casts=0;lands=0;render(); });
 
 render();
