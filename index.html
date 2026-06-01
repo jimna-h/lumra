@@ -14,25 +14,24 @@ html,body{height:100%;touch-action:manipulation;user-select:none;}
 body{
   font-family:'Cinzel',serif;
   min-height:100dvh;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  padding:2rem 1.25rem;
+  display:flex;flex-direction:column;align-items:center;justify-content:flex-end;
+  padding:0 1.25rem 3rem;
   background:#0e1a0e;
   position:relative;overflow:hidden;
 }
 .bg{
   position:fixed;inset:0;
   background:url('img/Lumra.webp') center center/cover no-repeat;
-  opacity:0.35;
+  opacity:0.55;
   z-index:0;
 }
 .bg-scrim{
   position:fixed;inset:0;
-  background:rgba(8,14,8,0.55);
+  background:linear-gradient(to bottom, rgba(8,14,8,0.2) 0%, rgba(8,14,8,0.65) 70%);
   z-index:0;
 }
 .wrapper{position:relative;z-index:1;width:100%;max-width:400px;display:flex;flex-direction:column;gap:1rem;}
 
-/* ── COUNTER CARD ── */
 .counter-card{
   background:rgba(10,20,10,0.72);
   border:1px solid rgba(90,158,90,0.25);
@@ -43,7 +42,7 @@ body{
 .counter-label{
   font-size:0.6rem;letter-spacing:0.2em;
   color:#c4902a;text-align:center;
-  padding:12px 0 0;
+  padding:14px 0 0;
 }
 .counter-inner{
   position:relative;
@@ -59,15 +58,15 @@ body{
 .tap-zone.right{right:0;}
 .tap-zone.left.active{background:rgba(200,60,50,0.2);}
 .tap-zone.right.active{background:rgba(90,158,90,0.2);}
-.counter-mid{position:relative;z-index:1;pointer-events:none;text-align:center;}
+.counter-mid{position:relative;z-index:1;pointer-events:none;text-align:center;padding-bottom:16px;}
 .counter-number{
   font-size:3.8rem;font-weight:700;
   color:#f0e8d0;line-height:1;
 }
 .counter-sub{
   font-size:0.62rem;letter-spacing:0.12em;
-  color:rgba(200,184,152,0.6);
-  margin-top:5px;padding-bottom:14px;
+  color:rgba(200,184,152,0.55);
+  margin-top:6px;
 }
 .counter-edge-hints{
   position:absolute;inset:0;z-index:1;pointer-events:none;
@@ -76,13 +75,6 @@ body{
 }
 .edge-hint{font-size:1.8rem;font-weight:700;color:rgba(240,232,208,0.15);line-height:1;}
 
-/* pips row inside cost card */
-.pips{display:flex;justify-content:center;gap:5px;margin:4px 0 0;pointer-events:none;position:relative;z-index:1;}
-.pip{width:24px;height:24px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;}
-.pip-c{background:#444;color:#ddd;border:1px solid #777;}
-.pip-g{background:#1a4020;color:#6ecf6e;border:1px solid #3a8c3a;}
-
-/* Reset */
 .reset-btn{
   width:100%;background:transparent;
   border:1px solid rgba(140,40,40,0.5);
@@ -112,7 +104,6 @@ body{
       </div>
       <div class="counter-mid">
         <div class="counter-number" id="cost-val">6</div>
-        <div class="pips" id="pips"></div>
         <div class="counter-sub" id="cost-sub">BASE COST</div>
       </div>
     </div>
@@ -129,7 +120,6 @@ body{
       </div>
       <div class="counter-mid">
         <div class="counter-number" id="pt-val">0/0</div>
-        <div class="counter-sub" id="pt-sub">LANDS YOU CONTROL</div>
       </div>
     </div>
   </div>
@@ -139,20 +129,11 @@ body{
 </div>
 
 <script>
-var BASE = 6;
 var casts = 0, lands = 0;
 
-function renderPips(total){
-  var generic = total - 2;
-  var html = '<span class="pip pip-c">'+generic+'</span>';
-  html += '<span class="pip pip-g">G</span><span class="pip pip-g">G</span>';
-  document.getElementById('pips').innerHTML = html;
-}
-
 function render(){
-  var cost = BASE + casts * 2;
+  var cost = 6 + casts * 2;
   document.getElementById('cost-val').textContent = cost;
-  renderPips(cost);
   document.getElementById('cost-sub').textContent = casts === 0 ? 'BASE COST' : 'COMMANDER TAX +' + (casts*2);
   document.getElementById('pt-val').textContent = lands + '/' + lands;
 }
@@ -172,7 +153,6 @@ zone('cast-minus', function(){ if(casts>0){casts--;render();} });
 zone('cast-plus',  function(){ casts++;render(); });
 zone('land-minus', function(){ if(lands>0){lands--;render();} });
 zone('land-plus',  function(){ lands++;render(); });
-
 document.getElementById('reset-btn').addEventListener('click', function(){ casts=0;lands=0;render(); });
 
 render();
